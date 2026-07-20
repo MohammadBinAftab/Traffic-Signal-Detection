@@ -313,42 +313,79 @@ with tab2:
 
 # ══ TAB 3: Webcam ═════════════════════════════════════════════════════════════
 with tab3:
-    st.info("Uses your default webcam (index 0). Toggle off to stop.")
-    run_cam = st.toggle("Start Webcam")
+    webcam_mode = st.radio("Select Webcam Mode", ["📸 Camera Snapshot (Works Online & Local)", "📹 Live Stream (Works Local Only)"])
 
-    if run_cam and model:
-        cap = cv2.VideoCapture(0)    # OpenCV opens webcam
-        if not cap.isOpened():
-            st.error("Cannot access webcam.")
-        else:
-            stframe     = st.empty()
-            thresh_disp = st.empty()
-            stop_btn    = st.button("⏹ Stop Webcam")
-            det_area    = st.empty()
+    if webcam_mode == "📸 Camera Snapshot (Works Online & Local)":
+        uploaded_snap = st.camera_input("Take a photo to detect traffic signs")
+        if uploaded_snap and model:
+            file_bytes = np.frombuffer(uploaded_snap.read(), np.uint8)
+            frame      = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
-            while not stop_btn:
-                ret, frame = cap.read()     # OpenCV reads each frame
-                if not ret:
-                    st.warning("Frame read failed.")
-                    break
+            if frame is None:
+                st.error("Could not decode image.")
+            else:
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.subheader("Original Photo")
+                    st.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), use_container_width=True)
 
-                if use_rl:
-                    annotated, dets, used_thresh = rl_detect(model, frame, img_size)
-                    thresh_disp.caption(f"🤖 RL threshold: **{used_thresh:.2f}**")
-                else:
-                    annotated, dets = detect_frame(model, frame.copy(), conf_thresh, img_size)
+                with col2:
+                    st.subheader("Detected Signs")
+                    if use_rl:
+                        annotated, dets, used_thresh = rl_detect(model, frame, img_size)
+                        st.caption(f"🤖 RL agent used threshold: **{used_thresh:.2f}**")
+                    else:
+                        annotated, dets = detect_frame(model, frame.copy(), conf_thresh, img_size)
+                        st.caption(f"Manual threshold: **{conf_thresh:.2f}**")
 
-                stframe.image(annotated, channels="RGB", use_container_width=True)
+                    st.image(annotated, use_container_width=True)
 
                 if dets:
-                    det_area.table(dets)
+                    st.subheader(f"Found {len(dets)} sign(s)")
+                    st.table(dets)
+                else:
+                    st.info("No traffic signs detected above threshold.")
 
-                time.sleep(0.03)    # ~30 fps cap
+        elif uploaded_snap and not model:
+            st.warning("Please upload your model in the sidebar first.")
 
-            cap.release()
+    else:
+        st.info("Uses your default webcam (index 0). Toggle off to stop.")
+        run_cam = st.toggle("Start Webcam")
 
-    elif run_cam and not model:
-        st.warning("Please upload your model in the sidebar first.")
+        if run_cam and model:
+            cap = cv2.VideoCapture(0)    # OpenCV opens webcam
+            if not cap.isOpened():
+                st.error("Cannot access webcam. Ensure you are running this app locally on your laptop.")
+            else:
+                stframe     = st.empty()
+                thresh_disp = st.empty()
+                stop_btn    = st.button("⏹ Stop Webcam")
+                det_area    = st.empty()
+
+                while not stop_btn:
+                    ret, frame = cap.read()     # OpenCV reads each frame
+                    if not ret:
+                        st.warning("Frame read failed.")
+                        break
+
+                    if use_rl:
+                        annotated, dets, used_thresh = rl_detect(model, frame, img_size)
+                        thresh_disp.caption(f"🤖 RL threshold: **{used_thresh:.2f}**")
+                    else:
+                        annotated, dets = detect_frame(model, frame.copy(), conf_thresh, img_size)
+
+                    stframe.image(annotated, channels="RGB", use_container_width=True)
+
+                    if dets:
+                        det_area.table(dets)
+
+                    time.sleep(0.03)    # ~30 fps cap
+
+                cap.release()
+
+        elif run_cam and not model:
+            st.warning("Please upload your model in the sidebar first.")
 
 # ─── Footer ───────────────────────────────────────────────────────────────────
 st.markdown("---")
