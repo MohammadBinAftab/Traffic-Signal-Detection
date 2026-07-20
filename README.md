@@ -1,4 +1,4 @@
-# 🚦 Traffic Sign Detection with Adaptive Q-Learning Threshold
+# 🚦 Traffic Sign Detection System with Adaptive Q-Learning Threshold
 
 An interactive web application that performs real-time traffic sign detection using **YOLOv8** (trained on the GTSRB dataset) and adaptively controls the confidence threshold using a **Q-Learning Reinforcement Learning agent**.
 
@@ -18,6 +18,19 @@ Built with **Streamlit**, **OpenCV**, and **Ultralytics**.
 
 ---
 
+## 📁 Project Structure
+
+```
+├── app.py                     # Streamlit desktop application
+├── rl_agent.py                # Adaptive Reinforcement Learning agent (Q-Learning)
+├── q_table.json               # Saved state-action values for RL agent
+├── requirements.txt           # Python dependencies
+├── best.pt                    # Trained YOLOv8 model weights
+└── kaggle_train_gtsrb.ipynb   # Jupyter Notebook to train the model on Kaggle
+```
+
+---
+
 ## 🛠️ Setup Instructions (For All Laptops)
 
 Follow the setup steps corresponding to your operating system.
@@ -31,7 +44,7 @@ Ensure you have **Python 3.8 to 3.11** installed on your laptop. (Python 3.12+ i
 
 ---
 
-### Step 1: Clone or Download the Repository
+### Step 1: Clone the Repository
 
 Open your terminal or command prompt and clone the repository:
 
@@ -39,10 +52,6 @@ Open your terminal or command prompt and clone the repository:
 git clone https://github.com/MohammadBinAftab/Traffic-Signal-Detection.git
 cd Traffic-Signal-Detection
 ```
-
-If downloading as a ZIP file:
-1. Extract the folder.
-2. Open terminal/powershell and navigate to the directory (e.g., `cd path/to/Traffic-Signal-Detection`).
 
 ---
 
@@ -76,17 +85,9 @@ With the virtual environment activated, run the following command to install all
 pip install -r requirements.txt
 ```
 
-*Note: This will install `streamlit`, `ultralytics` (YOLOv8), `opencv-python`, `Pillow`, and `numpy`.*
-
 ---
 
-### Step 4: Add the Model Weights
-
-Make sure you have your trained model weights file named **`best.pt`** placed directly in the project root directory alongside `app.py`. The app will auto-detect and load it on launch.
-
----
-
-### Step 5: Run the Application
+### Step 4: Run the Application
 
 Start the Streamlit application:
 
@@ -94,31 +95,39 @@ Start the Streamlit application:
 python -m streamlit run app.py
 ```
 
-The app will start a local server and output the access URLs. By default, it will open in your web browser at:
+The app will start a local server and output the access URLs. Open your browser and navigate to:
 👉 **`http://localhost:8501`**
 
 ---
 
-## 💡 Using the App
+## 🏋️ Training the Model (Kaggle)
 
-1.  **Select Inference Mode**:
-    *   **`Multi-Scale (Robust)`** (Default): Recommended for most images. It evaluates the frame at multiple resolutions to capture signs regardless of how small or large they are.
-    *   **Single Resolutions (`160` to `640`)**: Runs inference at a single fixed size. Lower sizes (like `160` or `224`) are fast and work best for cropped/clean graphics. Higher sizes (like `640`) are better for distant signs in high-res wide shots.
-2.  **Adaptive Threshold vs. Manual Slider**:
-    *   Toggle **Use RL Adaptive Threshold** in the sidebar to let the Q-learning agent choose the confidence threshold.
-    *   Turn it off to manually specify the confidence threshold using the slider.
-3.  **Real-Time Webcam**:
-    *   Navigate to the **Webcam** tab, toggle "Start Webcam", and allow camera access. Click "Stop Webcam" to release the camera.
+If you wish to re-train the YOLOv8 model on the GTSRB dataset:
+1. Go to [Kaggle](https://www.kaggle.com) and create a new notebook.
+2. Add the dataset: **gtsrb-german-traffic-sign**.
+3. Enable **GPU T4** under Settings → Accelerator.
+4. Upload and run `kaggle_train_gtsrb.ipynb`.
+5. Download `runs/gtsrb/weights/best.pt` from the Output panel and place it in the project root directory.
 
 ---
 
-## 📂 Project Structure
+## 📊 Dataset & Model Performance
 
-*   `app.py`: Main Streamlit web application interface, image pre-processing, and multi-scale inference engine.
-*   `rl_agent.py`: Adaptive Reinforcement Learning agent (Q-Learning) implementation.
-*   `best.pt`: Pre-trained YOLOv8 weights (GTSRB dataset).
-*   `q_table.json`: JSON file storing the learned state-action Q-values for the RL agent.
-*   `requirements.txt`: Python package dependencies list.
+### Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Name | GTSRB — German Traffic Sign Recognition Benchmark |
+| Training Images | ~51,839 |
+| Classes | 43 |
+| Source | [Kaggle GTSRB](https://www.kaggle.com/datasets/meowmeowmeowmeowmeow/gtsrb-german-traffic-sign) |
+
+### Expected Accuracy
+
+| Configuration | Expected mAP50 |
+|--------------|----------------|
+| YOLOv8n, 30 epochs, img=416 | ~82–87% |
+| YOLOv8s, 50 epochs, img=640 | ~92–95% |
 
 ---
 
@@ -135,3 +144,12 @@ If installing dependencies throws an error compiling certain libraries, you may 
 By default, `pip install -r requirements.txt` installs the CPU version of PyTorch. If you have an Nvidia GPU and want faster real-time webcam inference:
 1. Uninstall torch: `pip uninstall torch torchvision`
 2. Install the CUDA-enabled version of PyTorch by following instructions on the [official PyTorch website](https://pytorch.org/get-started/locally/).
+
+---
+
+## 📚 References
+
+- [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics)
+- [GTSRB Dataset](https://benchmark.ini.rub.de/gtsrb_news.html)
+- [OpenCV](https://docs.opencv.org)
+- [Streamlit](https://docs.streamlit.io)
